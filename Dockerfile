@@ -8,4 +8,4 @@ RUN pip install requests \
     pip install twilio \
     pip install free-proxy
 
-CMD ["./cron.py"]
+CMD ["./cron"]
