@@ -13,4 +13,4 @@ docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/street
 docker tag streeteasy-scraper ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/streeteasy-scraper:latest && \
 docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/streeteasy-scraper:latest && \
 kubectl apply -f kubernetes/deploy.yml && \
-rm kubernetes/deploy.yml
+rm kubernetes/deploy.yml kubernetes/deploy-tmp.yml
