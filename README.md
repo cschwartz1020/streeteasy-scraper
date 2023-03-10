@@ -17,8 +17,8 @@ Enter the phone numbers that you want to be alerted in the `PHONE_NUMBERS` const
 Start Docker desktop, and then run
 
 ```bash
-make build
-make run
+make build # per code change
+make run # just to run
 ```
 
 ## Running in AWS EKS
