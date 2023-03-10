@@ -1,0 +1,16 @@
+#!/bin/bash
+set -o allexport
+source ./.env set
++o allexport
+
+SHA=`tar -cf - ../ | md5` && \
+sed "s/SHA/$SHA/" kubernetes/deployment.yml > kubernetes/deploy-tmp.yml && \
+sed "s/ACCOUNT/$AWS_ACCOUNT_ID/" kubernetes/deploy-tmp.yml > kubernetes/deploy.yml && \
+aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com && \
+docker build -t streeteasy-scraper . && \
+docker tag streeteasy-scraper ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/streeteasy-scraper:$SHA && \
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/streeteasy-scraper:$SHA && \
+docker tag streeteasy-scraper ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/streeteasy-scraper:latest && \
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/streeteasy-scraper:latest && \
+kubectl apply -f kubernetes/deploy.yml && \
+rm kubernetes/deploy.yml

@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+import requests
+from bs4 import BeautifulSoup
+import json
+import os
+from decouple import config
+from datetime import datetime
+import pytz
+from twilio.rest import Client
+from fp.fp import FreeProxy
+import time
+
+# INSERT THE LINK WITH YOUR DESIRED APARTMENT PARAMETERS BELOW
+RENT_URL_BASE = 'https://streeteasy.com/3-bedroom-apartments-for-rent/nyc/price:-8000%7Carea:115,117,158,113,116,118,162,107,157%7Cbaths%3E=2%7Camenities:dishwasher%7Copt_amenities:washer_dryer?page='
+PHONE_NUMBERS = [''] # INSERT THE PHONE NUMBERS YOU WOULD LIKE TO RECEIVE NOTIFICATIONS IN THE FORMAT +11234567890
+
+def get_rent_url(page):
+    return RENT_URL_BASE + str(page)
+
+def find_nth(haystack, needle, n):
+    start = haystack.find(needle)
+    while start >= 0 and n > 1:
+        start = haystack.find(needle, start+len(needle))
+        n -= 1
+    return start
+
+def cdata_to_json_dict(cdata):
+    return json.loads(cdata[find_nth(cdata, '[', 3): cdata.rindex('}}]') + 3])
+
+def parse_units_on_page(data):
+    units_on_page = []
+    for item in data:
+        units_on_page.append({
+            'rent': item['additionalProperty']['value'],
+            'address': item['address']['streetAddress']
+        })
+    return units_on_page
+         
+
+all_units = []
+time_to_break = False
+page_number = 1
+while True:
+    url = get_rent_url(page_number)
+    proxy = FreeProxy(rand=True).get()
+    page = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'}, proxies={'http': proxy})
+    soup = BeautifulSoup(page.text, 'html.parser')
+    cdata = soup.find("script", {"async": "async", "type" : "application/ld+json"})
+    data = cdata_to_json_dict(str(cdata))
+    units_on_page = parse_units_on_page(data)
+    for unit in units_on_page:
+        if unit not in all_units:
+            all_units.append(unit)
+        else:
+            time_to_break = True
+            break
+    if time_to_break:
+        break
+    page_number += 1
+    time.sleep(5)
+
+old_units = []
+with open('units.json', 'r') as f:
+    old_units = json.load(f)
+
+new_units = []
+for unit in all_units:
+    found = False
+    for old_unit in old_units:
+        if unit['address'] == old_unit['address']:
+            found = True
+    if not found:
+        new_units.append(unit)
+
+if len(new_units) > 0:
+    msg = str(len(new_units)) + " new units in Chelsea, East Village, West Village, SoHo, NoHo, Flatiron, Gramercy, Greenwich, Nolito, with 2 bath, 3 bed\n"
+    print(msg)
+    col_width = max(len(word) for unit in new_units for word in unit) + 2
+    msg += "".join(["RENT".ljust(col_width), "ADDRESS".ljust(col_width)]) + "\n"
+    print("".join(["RENT".ljust(col_width), "ADDRESS".ljust(col_width)]))
+    for unit in new_units:
+        msg += "".join(word.ljust(col_width) for word in unit.values()) + "\n"
+        print("".join(word.ljust(col_width) for word in unit.values()))
+
+    account_sid = os.environ['TWILIO_SID']
+    auth_token = os.environ['TWILIO_AUTH_TOKEN']
+    origination_number = os.environ['TWILIO_ORIGINATION_NUMBER']
+    client = Client(account_sid, auth_token)
+    for number in PHONE_NUMBERS:
+        message = client.messages \
+                        .create(
+                            body=msg,
+                            from_=origination_number,
+                            to=number
+                        )
+
+    with open('units.json', 'w') as f:
+        f.write(json.dumps(all_units))
+    
+    with open('cron.log', 'a') as f:
+        newYorkTz = pytz.timezone("America/New_York") 
+        timeInNewYork = datetime.now(newYorkTz)
+        currentTimeInNewYork = timeInNewYork.strftime("%m/%d/%Y, %H:%M:%S")
+        for unit in new_units:
+            f.write(str(currentTimeInNewYork) + ": new unit at " + unit['address'] + " for " + unit['rent'] + '\n')
+else:
+    print("No new units in East Village, Gramercy Park, Greenwich Village, Nolita, Soho, West Village under $8K, with 1.5 + bath, 3 bed, washer dryer")
+
+

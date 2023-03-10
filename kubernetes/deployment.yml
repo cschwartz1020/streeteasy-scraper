@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streeteasy-scraper
+  namespace: default
+  labels:
+    app: streeteasy-scraper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streeteasy-scraper
+  template:
+    metadata:
+      labels:
+        app: streeteasy-scraper
+    spec:
+      containers:
+      - name: streeteasy-scraper
+        image: ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/streeteasy-scraper:SHA
+        imagePullPolicy: Always

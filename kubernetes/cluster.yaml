@@ -1,0 +1,11 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: streeteasy-scraper
+  region: us-east-1
+nodeGroups:
+  - name: streeteasy-scraper-ng
+    instanceType: t2.small
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 1

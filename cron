@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+import subprocess
+import time
+while True:
+    subprocess.run(["./main.py"])
+    time.sleep(300)
+
