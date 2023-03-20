@@ -21,6 +21,13 @@ make build # per code change
 make run # just to run
 ```
 
+cleanup
+
+```bash
+make clean
+```
+
+
 ## Running in AWS EKS (Optional)
 Enter your AWS credentials in `.env`
 
