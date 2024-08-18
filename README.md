@@ -29,6 +29,9 @@ make clean
 
 
 ## Running in AWS EKS (Optional)
+
+There is literally no reason to run this on a Cloud Hosted managed Kubernetes service, but I thought it would be fun
+
 Enter your AWS credentials in `.env`
 
 ```bash
