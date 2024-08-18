@@ -73,6 +73,7 @@ for unit in all_units:
         new_units.append(unit)
 
 if len(new_units) > 0:
+    # MODIFY TEXT MESSAGE DEPENDING ON YOUR SEARCH
     msg = str(len(new_units)) + " new units in Chelsea, East Village, West Village, SoHo, NoHo, Flatiron, Gramercy, Greenwich, Nolito, with 2 bath, 3 bed\n"
     print(msg)
     col_width = max(len(word) for unit in new_units for word in unit) + 2
@@ -104,6 +105,7 @@ if len(new_units) > 0:
         for unit in new_units:
             f.write(str(currentTimeInNewYork) + ": new unit at " + unit['address'] + " for " + unit['rent'] + '\n')
 else:
+    # MODIFY STANDARD OUT DEPENDING ON YOUR SEARCH
     print("No new units in East Village, Gramercy Park, Greenwich Village, Nolita, Soho, West Village under $8K, with 1.5 + bath, 3 bed, washer dryer")
 
 
